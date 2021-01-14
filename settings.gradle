@@ -1,0 +1,2 @@
+rootProject.name='Zori'
+include ':app'
