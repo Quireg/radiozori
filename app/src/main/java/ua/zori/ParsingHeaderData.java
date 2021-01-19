@@ -3,11 +3,11 @@ package ua.zori;
 import android.text.TextUtils;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +71,6 @@ public class ParsingHeaderData {
             con.setRequestProperty("Accept-Charset", "UTF-8");
             con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
             con.setRequestProperty("Icy-MetaData", "1");
-            // con.setRequestProperty("Connection", "close");
-            // con.setRequestProperty("Accept", null);
             con.connect();
 
             int metaDataOffset = 0;
@@ -104,8 +102,9 @@ public class ParsingHeaderData {
             int b;
             int count = 0;
             int metaDataLength = 4080; // 4080 is the max length
-            boolean inData = false;
-            StringBuilder metaData = new StringBuilder();
+
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
             while ((b = stream.read()) != -1) {
                 count++;
                 if (count == metaDataOffset + 1) {
@@ -113,21 +112,17 @@ public class ParsingHeaderData {
                 }
                 if (count > metaDataOffset + 1
                         && count < (metaDataOffset + metaDataLength)) {
-                    inData = true;
-                } else {
-                    inData = false;
-                }
-                if (inData) {
                     if (b != 0) {
-                        metaData.append((char) b);
+                        buffer.write(b);
                     }
                 }
                 if (count > (metaDataOffset + metaDataLength)) {
                     break;
                 }
-
             }
-            metadata = ParsingHeaderData.parsingMetadata(metaData.toString());
+            metadata = ParsingHeaderData.parsingMetadata(
+                    new String(buffer.toByteArray(), 0, buffer.size(), "UTF-8"));
+            buffer.close();
             stream.close();
         } catch (Exception e) {
             if (e != null && e.equals(null))
@@ -137,7 +132,6 @@ public class ParsingHeaderData {
                 stream.close();
         }
         return metadata;
-
     }
 
     public URL getStreamUrl() {
@@ -150,7 +144,7 @@ public class ParsingHeaderData {
     }
 
     public static Map<String, String> parsingMetadata(String metaString) {
-        @SuppressWarnings({ "rawtypes", "unchecked" })
+        @SuppressWarnings({"rawtypes", "unchecked"})
         Map<String, String> metadata = new HashMap();
         String[] metaParts = metaString.split(";");
         Pattern p = Pattern.compile("^([a-zA-Z]+)=\\'([^\\']*)\\'$");

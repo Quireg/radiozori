@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ua.zori">
+
+    <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -8,9 +10,10 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher_3"
         android:label="@string/app_name"
+        android:launchMode="singleTask"
         android:roundIcon="@mipmap/ic_launcher_3_round"
-        android:supportsRtl="true"
         android:screenOrientation="portrait"
+        android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
@@ -20,6 +23,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".RadioService" />
+        <service android:name=".RadioService" android:process=":radio" />
     </application>
 </manifest>

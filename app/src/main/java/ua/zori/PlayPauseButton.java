@@ -225,16 +225,13 @@ public class PlayPauseButton extends View {
 
     public void setToPlay() {
 
-        if (state == PAUSE) {
-            state = PLAY;
-        } else {
-            return;
-        }
-
+//        if (state == PAUSE) {
+        state = PLAY;
+//        } else {
+//            return;
+//        }
         leftPlayAnimation();
-
         rightPlayAnimation();
-
     }
 
     void rightPlayAnimation() {
@@ -292,12 +289,11 @@ public class PlayPauseButton extends View {
     }
 
     public void setToPause() {
-
-        if (state == PLAY) {
-            state = PAUSE;
-        } else {
-            return;
-        }
+//        if (state == PLAY) {
+        state = PAUSE;
+//        } else {
+//            return;
+//        }
 
         leftPauseAnimation();
 

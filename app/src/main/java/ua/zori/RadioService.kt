@@ -1,60 +1,72 @@
 package ua.zori
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.Service
+import android.bluetooth.BluetoothAdapter
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
-import android.media.MediaPlayer
+import android.content.IntentFilter
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.*
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationCompat.PRIORITY_MIN
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
 import java.net.URL
 
-
 /**
- * Created by artur.menchenko on 14/01/21.
+ * Created by Artur Menchenko on 14/01/21.
  */
-
-const val LOADING = 0
-const val PLAYING = 1
-const val STOPPED = 2
 
 class RadioService : Service() {
 
     private var TAG = "RadioService"
 
-    private var NOTIFICATION_ID = 101
+    private val STREAM_URL = "https://myradio24.org/65822"
+
     private val TOKEN_TRACK = "acuireTrackToken"
     private val TOKEN_START = "start"
     private val TOKEN_STOP = "stop"
 
-    private val binder = LocalBinder()
     private var bH: Handler? = null
-    private var stateListener: StateListener? = null
-    private var trackListener: TrackListener? = null
-    private var lastState: Int = LOADING
+    private var stateListener: IStateListener? = null
+    private var trackListener: ITrackListener? = null
     private var lastTrack: String = ""
     private var wifiLock: WifiManager.WifiLock? = null
-    private var isRunning = false
     private var innerState = State.STOPPED
     private var _player: SimpleExoPlayer? = null
+    private var _notificationHelper: NotificationHelper? = null
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return binder
+
+    inner class RadioServiceImpl : IRadioServiceInterface.Stub() {
+        override fun setTrackListener(t: ITrackListener?) {
+            trackListener = t
+            trackListener?.onStateChanged(lastTrack)
+        }
+
+        override fun stopPlayback() {
+            stopPlaybackInternal()
+        }
+
+        override fun resume() {
+            resumePlaybackInternal()
+        }
+
+        override fun startPlayback() {
+            startPlaybackInternal()
+        }
+
+        override fun setStateListener(t: IStateListener?) {
+            stateListener = t
+            stateListener?.onStateChanged(innerState.ordinal)
+        }
+
     }
 
-    inner class LocalBinder : Binder() {
-        fun getService(): RadioService = this@RadioService
+    override fun onBind(intent: Intent?): IBinder? {
+        return RadioServiceImpl()
     }
 
     override fun onCreate() {
@@ -62,80 +74,79 @@ class RadioService : Service() {
         val ht = HandlerThread("ht")
         ht.start()
         bH = Handler(ht.looper)
+        setupHeadsetUnplugReceiver()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (!isRunning) {
-            startPlayback()
-        }
-        return super.onStartCommand(intent, flags, startId)
+        return START_STICKY
     }
 
-    fun setStateListener(l: StateListener) {
-        stateListener = l
-        l.onStateChanged(lastState)
-    }
-
-    fun setTrackListener(l: TrackListener) {
-        trackListener = l
-        l.onStateChanged(lastTrack)
-    }
-
-    fun startPlayback() {
-        bH?.post {
-            if (innerState == State.STOPPED) {
-                innerState = State.LOADING
-                bH?.removeCallbacksAndMessages(TOKEN_START)
-                bH?.postAtTime(startRunnable, TOKEN_START, SystemClock.uptimeMillis())
-            }
+    fun startPlaybackInternal() {
+        if (innerState == State.STOPPED) {
+            innerState = State.LOADING
+            bH?.removeCallbacksAndMessages(TOKEN_START)
+            bH?.postAtTime(startRunnable, TOKEN_START, SystemClock.uptimeMillis())
         }
     }
 
-    fun stopPlayback() {
+    fun stopPlaybackInternal() {
+        bH?.removeCallbacksAndMessages(TOKEN_TRACK)
+        if (innerState == State.STARTED) {
+            innerState = State.LOADING
+            bH?.removeCallbacksAndMessages(TOKEN_STOP)
+            bH?.postAtTime(stopRunnable, TOKEN_STOP, SystemClock.uptimeMillis())
+        }
+    }
+
+    fun pausePlaybackInternal() {
         bH?.post {
-            if (innerState == State.STARTED) {
-                innerState = State.LOADING
-                bH?.removeCallbacksAndMessages(TOKEN_STOP)
-                bH?.postAtTime(stopRunnable, TOKEN_STOP, SystemClock.uptimeMillis())
-            }
+            _player?.pause()
+            _notificationHelper?.setPaused()
+            innerState = State.PAUSED
+            stateListener?.onStateChanged(innerState.ordinal)
+        }
+    }
+
+    fun resumePlaybackInternal() {
+        bH?.post {
+            _player?.play()
+            _notificationHelper?.setResumed()
+            innerState = State.STARTED
+            stateListener?.onStateChanged(innerState.ordinal)
         }
     }
 
     private val startRunnable: Runnable
         get() = Runnable {
             Log.d(TAG, "Starting")
-            lastState = LOADING
-            stateListener?.onStateChanged(lastState)
+            stateListener?.onStateChanged(innerState.ordinal)
+
+            _notificationHelper = NotificationHelper(this,
+                    object : NotificationHelper.PlaybackControlCallback {
+                        override fun onPause() {
+                            pausePlaybackInternal()
+                        }
+
+                        override fun onResume() {
+                            resumePlaybackInternal()
+                        }
+                    })
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val chan = NotificationChannel("RadioZoriService",
-                        "RadioZori", NotificationManager.IMPORTANCE_NONE)
-                chan.lightColor = Color.BLUE
-                chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-                val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                service.createNotificationChannel(chan)
-
-                val notificationBuilder = NotificationCompat.Builder(this, "RadioZoriService")
-                val notification = notificationBuilder.setOngoing(true)
-                        .setSmallIcon(R.mipmap.ic_launcher)
-                        .setPriority(PRIORITY_MIN)
-                        .setCategory(Notification.CATEGORY_SERVICE)
-                        .build()
-                startForeground(NOTIFICATION_ID, notification)
+                startForeground(NOTIFICATION_ID,
+                        _notificationHelper?.getDefaultOnStartNotification())
             }
-
-
             _player = SimpleExoPlayer.Builder(this)
                     .setWakeMode(PowerManager.PARTIAL_WAKE_LOCK)
                     .build()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 _player?.setAudioAttributes(AudioAttributes.Builder()
-                                .setContentType(C.CONTENT_TYPE_MUSIC)
-                                .build()
+                        .setContentType(C.CONTENT_TYPE_MUSIC)
+                        .build()
                 )
             }
             _player?.setMediaItem(
-                    MediaItem.fromUri(Uri.parse("https://myradio24.org/65822")))
+                    MediaItem.fromUri(Uri.parse(STREAM_URL)))
 
             _player?.playWhenReady = true
             _player?.prepare()
@@ -146,8 +157,7 @@ class RadioService : Service() {
             wifiLock?.acquire()
             bH?.postAtTime(acquireTrackRunnable, TOKEN_TRACK, SystemClock.uptimeMillis())
             innerState = State.STARTED
-            lastState = PLAYING
-            stateListener?.onStateChanged(lastState)
+            stateListener?.onStateChanged(innerState.ordinal)
         }
 
 
@@ -155,42 +165,73 @@ class RadioService : Service() {
         get() = Runnable {
             Log.d(TAG, "Stopping")
             _player?.release()
-            wifiLock?.release()
+            if (wifiLock!!.isHeld) {
+                wifiLock?.release()
+            }
             stopForeground(true)
-            bH?.removeCallbacksAndMessages(TOKEN_TRACK)
+            stopSelf()
             innerState = State.STOPPED
-            lastState = STOPPED
-            stateListener?.onStateChanged(lastState)
+            stateListener?.onStateChanged(innerState.ordinal)
         }
 
     private val acquireTrackRunnable: Runnable
         get() = Runnable {
-            Log.d(TAG, "acquireTrack")
-
-            _player?.currentMediaItem?.mediaMetadata?.let {
-                Log.d(TAG,             "ASD")
-            }
-
-
             val p = ParsingHeaderData()
-            val t = p.getTrackDetails(URL("https://myradio24.org/65822"))
+            val t = p.getTrackDetails(URL(STREAM_URL))
             lastTrack = t.artist + " " + t.title
             trackListener?.onStateChanged(lastTrack)
-            bH?.postAtTime(acquireTrackRunnable, TOKEN_TRACK, SystemClock.uptimeMillis() + 5000)
+            bH?.postAtTime(acquireTrackRunnable, TOKEN_TRACK,
+                    SystemClock.uptimeMillis() + 5000)
         }
 
-    interface StateListener {
-        fun onStateChanged(state: Int)
+
+    private fun setupHeadsetUnplugReceiver() {
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED)
+        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
+        registerReceiver(br_bt, intentFilter)
+        registerReceiver(br, IntentFilter(Intent.ACTION_HEADSET_PLUG))
+
     }
 
-    interface TrackListener {
-        fun onStateChanged(track: String)
+    val br_bt = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED.equals(intent?.getAction())) {
+                val state = intent?.getIntExtra(BluetoothAdapter.EXTRA_CONNECTION_STATE, -1)
+                if (state == BluetoothAdapter.STATE_DISCONNECTED) {
+                    stopPlaybackInternal()
+                }
+            }
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent?.getAction())) {
+                if (intent?.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1)
+                        == BluetoothAdapter.STATE_OFF) {
+                    stopPlaybackInternal()
+                }
+            }
+        }
+    }
+
+    val br = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val state = intent?.getIntExtra("state", -1)
+            if (state == 0) {
+                stopPlaybackInternal()
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(br)
+        unregisterReceiver(br_bt)
+        _notificationHelper?.onDestroy()
     }
 
     enum class State {
         STARTED,
         STOPPED,
-        LOADING
+        LOADING,
+        PAUSED
     }
 }
 
