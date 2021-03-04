@@ -31,10 +31,10 @@ class NotificationHelper(val context: Context, c: PlaybackControlCallback) {
         intentFilterPlayPause.addAction(ACTION_STOP_PLAYBACK)
         context.registerReceiver(object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                if ("ua.zori.pause".equals(intent?.action)) {
+                if (ACTION_STOP_PLAYBACK == intent?.action) {
                     c.onPause()
                 }
-                if ("ua.zori.play".equals(intent?.action)) {
+                if (ACTION_START_PLAYBACK == intent?.action) {
                     c.onResume()
                 }
             }
@@ -43,10 +43,10 @@ class NotificationHelper(val context: Context, c: PlaybackControlCallback) {
 
     val play_pause = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if ("ua.zori.pause".equals(intent?.action)) {
+            if (ACTION_STOP_PLAYBACK.equals(intent?.action)) {
                 c.onPause()
             }
-            if ("ua.zori.play".equals(intent?.action)) {
+            if (ACTION_START_PLAYBACK.equals(intent?.action)) {
                 c.onResume()
             }
         }
@@ -55,7 +55,7 @@ class NotificationHelper(val context: Context, c: PlaybackControlCallback) {
     @RequiresApi(Build.VERSION_CODES.O)
     fun getDefaultOnStartNotification(): Notification? {
         val chan = NotificationChannel("RadioZoriService",
-                        "RadioZori", NotificationManager.IMPORTANCE_DEFAULT)
+                        "RadioZori", NotificationManager.IMPORTANCE_LOW)
         chan.lightColor = Color.BLUE
         chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
         notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

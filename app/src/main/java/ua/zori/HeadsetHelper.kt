@@ -26,7 +26,6 @@ class HeadsetHelper(context: Context, c: Callback) {
                         override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
                             val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
                             c.onResult(proxy!!.connectedDevices.size > 0 || am.isWiredHeadsetOn())
-//                            c.onResult(true)
                         }
                     }, BluetoothProfile.HEADSET)
         }

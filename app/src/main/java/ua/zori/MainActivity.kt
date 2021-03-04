@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
         _serviceIntent = Intent(this, RadioService::class.java)
 
@@ -150,15 +150,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setupLinks() {
-        val radio_link : Button = findViewById(R.id.radio_link)
-        radio_link.setOnClickListener {
+//        val radio_link : Button = findViewById(R.id.radio_link)
+//        radio_link.setOnClickListener {
+//            startActivity(Intent(Intent.ACTION_VIEW,
+//                    Uri.parse("https://radiozori.wixsite.com/radio")))
+//        }
+//        val fb_link : Button = findViewById(R.id.fb_link)
+//        fb_link.setOnClickListener {
+//            startActivity(Intent(Intent.ACTION_VIEW,
+//                    Uri.parse("https://www.facebook.com/Radiozori")))
+//        }
+        val donation_link : Button = findViewById(R.id.donation_link)
+        donation_link.setOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://radiozori.wixsite.com/radio")))
-        }
-        val fb_link : Button = findViewById(R.id.fb_link)
-        fb_link.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://www.facebook.com/Radiozori")))
+                    Uri.parse("https://radiozori.wixsite.com/radio/dopomoga-proektu")))
         }
     }
 

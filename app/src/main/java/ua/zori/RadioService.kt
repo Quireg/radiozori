@@ -26,7 +26,7 @@ class RadioService : Service() {
 
     private val STREAM_URL = "https://myradio24.org/65822"
 
-    private val TOKEN_TRACK = "acuireTrackToken"
+    private val TOKEN_TRACK = "acquireTrackToken"
     private val TOKEN_START = "start"
     private val TOKEN_STOP = "stop"
 
@@ -151,10 +151,11 @@ class RadioService : Service() {
             _player?.playWhenReady = true
             _player?.prepare()
 
-            val wifiManager =
-                    applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-            wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "lock")
-            wifiLock?.acquire()
+            //uncomment this if playback stops during wi-fi data transfer.
+//            val wifiManager =
+//                    applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+//            wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "lock")
+//            wifiLock?.acquire()
             bH?.postAtTime(acquireTrackRunnable, TOKEN_TRACK, SystemClock.uptimeMillis())
             innerState = State.STARTED
             stateListener?.onStateChanged(innerState.ordinal)
@@ -165,9 +166,9 @@ class RadioService : Service() {
         get() = Runnable {
             Log.d(TAG, "Stopping")
             _player?.release()
-            if (wifiLock!!.isHeld) {
-                wifiLock?.release()
-            }
+//            if (wifiLock!!.isHeld) {
+//                wifiLock?.release()
+//            }
             stopForeground(true)
             stopSelf()
             innerState = State.STOPPED

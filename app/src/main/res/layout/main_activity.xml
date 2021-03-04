@@ -56,24 +56,34 @@
         app:layout_constraintTop_toBottomOf="@id/playpausebutton"></ImageView>
 
     <Button
-        android:id="@+id/radio_link"
+        android:id="@+id/donation_link"
         android:layout_width="38dp"
         android:layout_height="38dp"
         android:layout_margin="16dp"
-        android:background="@drawable/radio"
+        android:background="@drawable/donation"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
     </Button>
 
-    <Button
-        android:id="@+id/fb_link"
-        android:layout_width="38dp"
-        android:layout_height="38dp"
-        android:layout_margin="16dp"
-        android:background="@drawable/facebook4"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/radio_link">
-    </Button>
+<!--    <Button-->
+<!--        android:id="@+id/radio_link"-->
+<!--        android:layout_width="38dp"-->
+<!--        android:layout_height="38dp"-->
+<!--        android:layout_margin="16dp"-->
+<!--        android:background="@drawable/radio"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent">-->
+<!--    </Button>-->
+
+<!--    <Button-->
+<!--        android:id="@+id/fb_link"-->
+<!--        android:layout_width="38dp"-->
+<!--        android:layout_height="38dp"-->
+<!--        android:layout_margin="16dp"-->
+<!--        android:background="@drawable/facebook4"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toStartOf="@id/radio_link">-->
+<!--    </Button>-->
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
