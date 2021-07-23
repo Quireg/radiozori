@@ -24,7 +24,7 @@ class RadioService : Service() {
 
     private var TAG = "RadioService"
 
-    private val STREAM_URL = "https://myradio24.org/65822"
+    private val STREAM_URL = "https://myradio24.org/35408"
 
     private val TOKEN_TRACK = "acquireTrackToken"
     private val TOKEN_START = "start"
