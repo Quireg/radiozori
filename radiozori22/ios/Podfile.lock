@@ -1,0 +1,66 @@
+PODS:
+  - Flutter (1.0.0)
+  - flutter_cast_video (0.0.1):
+    - Flutter
+    - google-cast-sdk-no-bluetooth
+  - flutter_inappwebview (0.0.1):
+    - Flutter
+    - flutter_inappwebview/Core (= 0.0.1)
+    - OrderedSet (~> 5.0)
+  - flutter_inappwebview/Core (0.0.1):
+    - Flutter
+    - OrderedSet (~> 5.0)
+  - flutter_radio_player (0.0.1):
+    - Flutter
+    - SwiftAudioEx
+  - google-cast-sdk-no-bluetooth (4.7.0):
+    - google-cast-sdk-no-bluetooth/Core (= 4.7.0)
+    - Protobuf (~> 3.13)
+  - google-cast-sdk-no-bluetooth/Core (4.7.0):
+    - Protobuf (~> 3.13)
+  - OrderedSet (5.0.0)
+  - Protobuf (3.25.3)
+  - SwiftAudioEx (1.0.0)
+  - url_launcher_ios (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - flutter_cast_video (from `.symlinks/plugins/flutter_cast_video/ios`)
+  - flutter_inappwebview (from `.symlinks/plugins/flutter_inappwebview/ios`)
+  - flutter_radio_player (from `.symlinks/plugins/flutter_radio_player/ios`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
+
+SPEC REPOS:
+  trunk:
+    - google-cast-sdk-no-bluetooth
+    - OrderedSet
+    - Protobuf
+    - SwiftAudioEx
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  flutter_cast_video:
+    :path: ".symlinks/plugins/flutter_cast_video/ios"
+  flutter_inappwebview:
+    :path: ".symlinks/plugins/flutter_inappwebview/ios"
+  flutter_radio_player:
+    :path: ".symlinks/plugins/flutter_radio_player/ios"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
+
+SPEC CHECKSUMS:
+  Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  flutter_cast_video: f9643cc5e5a77e72cb4445c0c750f8776fbf7395
+  flutter_inappwebview: 3d32228f1304635e7c028b0d4252937730bbc6cf
+  flutter_radio_player: 1ef266ab949eba8d0b29b9d75761cc2faf912004
+  google-cast-sdk-no-bluetooth: 5313156110d6e71fa336f6d742f1ee641e91fdca
+  OrderedSet: aaeb196f7fef5a9edf55d89760da9176ad40b93c
+  Protobuf: 8e9074797a13c484a79959fdb819ef4ae6da7dbe
+  SwiftAudioEx: 6f511018b7a0fdfd14ed1bb4081f953588245cc0
+  url_launcher_ios: bbd758c6e7f9fd7b5b1d4cde34d2b95fcce5e812
+
+PODFILE CHECKSUM: 70d9d25280d0dd177a5f637cdb0f0b0b12c6a189
+
+COCOAPODS: 1.15.2
